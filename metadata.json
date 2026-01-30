@@ -1,0 +1,7 @@
+{
+  "name": "Partner Creator",
+  "description": "An AI-powered ad generator for business partners to create social media content.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}

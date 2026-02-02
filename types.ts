@@ -16,4 +16,6 @@ export interface GenerationRequest {
   basePrompt: string;
   locationType?: string;
   productImageBase64?: string;
+  logoImageBase64?: string;
+  spatiImageBase64?: string;
 }

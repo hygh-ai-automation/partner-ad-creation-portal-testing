@@ -23,6 +23,8 @@ const AdBuilder: React.FC = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedResult, setGeneratedResult] = useState<GeneratedAd | null>(null);
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
+  const [logoImage, setLogoImage] = useState<string | null>(null);
+  const [spatiImage, setSpatiImage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   
   // Admin Settings State
@@ -32,6 +34,8 @@ const AdBuilder: React.FC = () => {
   });
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const logoInputRef = useRef<HTMLInputElement>(null);
+  const spatiInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -39,6 +43,28 @@ const AdBuilder: React.FC = () => {
       const reader = new FileReader();
       reader.onloadend = () => {
         setUploadedImage(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleLogoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setLogoImage(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleSpatiUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setSpatiImage(reader.result as string);
       };
       reader.readAsDataURL(file);
     }
@@ -64,7 +90,9 @@ const AdBuilder: React.FC = () => {
         userPrompt,
         basePrompt: settings.basePrompt,
         locationType: mode === 'text' ? locationType : undefined,
-        productImageBase64: uploadedImage || undefined
+        productImageBase64: uploadedImage || undefined,
+        logoImageBase64: logoImage || undefined,
+        spatiImageBase64: spatiImage || undefined
       });
 
       setGeneratedResult({
@@ -178,24 +206,95 @@ const AdBuilder: React.FC = () => {
           )}
 
           {mode === 'text' && (
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-300">Business Type</label>
-              <select
-                value={locationType}
-                onChange={(e) => setLocationType(e.target.value)}
-                className="w-full bg-gray-800 text-white p-3 rounded-xl border border-gray-700 focus:border-spati-accent focus:ring-1 focus:ring-spati-accent outline-none appearance-none"
-                style={{
-                  backgroundImage: `url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23FFFFFF%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E")`,
-                  backgroundRepeat: 'no-repeat',
-                  backgroundPosition: 'right 1rem center',
-                  backgroundSize: '0.8em'
-                }}
-              >
-                {LOCATION_TYPES.map((type) => (
-                  <option key={type} value={type}>{type}</option>
-                ))}
-              </select>
-            </div>
+            <>
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-300">Business Type</label>
+                <select
+                  value={locationType}
+                  onChange={(e) => setLocationType(e.target.value)}
+                  className="w-full bg-gray-800 text-white p-3 rounded-xl border border-gray-700 focus:border-spati-accent focus:ring-1 focus:ring-spati-accent outline-none appearance-none"
+                  style={{
+                    backgroundImage: `url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23FFFFFF%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E")`,
+                    backgroundRepeat: 'no-repeat',
+                    backgroundPosition: 'right 1rem center',
+                    backgroundSize: '0.8em'
+                  }}
+                >
+                  {LOCATION_TYPES.map((type) => (
+                    <option key={type} value={type}>{type}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Optional Reference Uploads */}
+              <div className="grid grid-cols-2 gap-3">
+                {/* Logo Upload */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-300">Logo <span className="text-gray-500">(optional)</span></label>
+                  <div 
+                    onClick={() => logoInputRef.current?.click()}
+                    className={`border-2 border-dashed rounded-xl p-4 flex flex-col items-center justify-center cursor-pointer transition-colors h-28 ${
+                      logoImage ? 'border-spati-accent bg-gray-900' : 'border-gray-700 hover:border-gray-500 bg-gray-800'
+                    }`}
+                  >
+                    {logoImage ? (
+                      <div className="relative w-full h-full">
+                        <img src={logoImage} alt="Logo" className="w-full h-full object-contain rounded-lg" />
+                        <button
+                          onClick={(e) => { e.stopPropagation(); setLogoImage(null); }}
+                          className="absolute -top-2 -right-2 bg-red-500 rounded-full p-1 hover:bg-red-600"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="white" className="w-3 h-3">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </button>
+                      </div>
+                    ) : (
+                      <>
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6 text-gray-400 mb-1">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+                        </svg>
+                        <p className="text-xs text-gray-400">Logo</p>
+                      </>
+                    )}
+                    <input type="file" ref={logoInputRef} onChange={handleLogoUpload} accept="image/*" className="hidden" />
+                  </div>
+                </div>
+
+                {/* Spätibild Upload */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-300">Spätibild <span className="text-gray-500">(optional)</span></label>
+                  <div 
+                    onClick={() => spatiInputRef.current?.click()}
+                    className={`border-2 border-dashed rounded-xl p-4 flex flex-col items-center justify-center cursor-pointer transition-colors h-28 ${
+                      spatiImage ? 'border-spati-accent bg-gray-900' : 'border-gray-700 hover:border-gray-500 bg-gray-800'
+                    }`}
+                  >
+                    {spatiImage ? (
+                      <div className="relative w-full h-full">
+                        <img src={spatiImage} alt="Späti" className="w-full h-full object-contain rounded-lg" />
+                        <button
+                          onClick={(e) => { e.stopPropagation(); setSpatiImage(null); }}
+                          className="absolute -top-2 -right-2 bg-red-500 rounded-full p-1 hover:bg-red-600"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="white" className="w-3 h-3">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </button>
+                      </div>
+                    ) : (
+                      <>
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6 text-gray-400 mb-1">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 21v-7.5a.75.75 0 01.75-.75h3a.75.75 0 01.75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349m-16.5 11.65V9.35m0 0a3.001 3.001 0 003.75-.615A2.993 2.993 0 009.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 002.25 1.016c.896 0 1.7-.393 2.25-1.016a3.001 3.001 0 003.75.614m-16.5 0a3.004 3.004 0 01-.621-4.72L4.318 3.44A1.5 1.5 0 015.378 3h13.243a1.5 1.5 0 011.06.44l1.19 1.189a3 3 0 01-.621 4.72m-13.5 8.65h3.75a.75.75 0 00.75-.75V13.5a.75.75 0 00-.75-.75H6.75a.75.75 0 00-.75.75v3.75c0 .415.336.75.75.75z" />
+                        </svg>
+                        <p className="text-xs text-gray-400">Späti-Foto</p>
+                      </>
+                    )}
+                    <input type="file" ref={spatiInputRef} onChange={handleSpatiUpload} accept="image/*" className="hidden" />
+                  </div>
+                </div>
+              </div>
+            </>
           )}
 
           <div className="space-y-2">

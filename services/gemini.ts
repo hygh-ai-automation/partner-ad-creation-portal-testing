@@ -22,34 +22,44 @@ export const generateAd = async (request: GenerationRequest): Promise<string> =>
 
     fullPrompt += `\n\nAdditional details from partner: ${request.userPrompt}`;
 
+    // Build parts array
+    const parts: any[] = [{ text: fullPrompt }];
+
     if (request.mode === 'product' && request.productImageBase64) {
-      // Multimodal request: Image + Text
-      // We strip the data prefix if present to get raw base64
+      // Product mode: add product image
       const base64Data = request.productImageBase64.replace(/^data:image\/\w+;base64,/, "");
-      
-      contents = {
-        parts: [
-          {
-            text: fullPrompt
-          },
-          {
-            inlineData: {
-              mimeType: 'image/jpeg', // Assuming JPEG for simplicity from camera/upload
-              data: base64Data
-            }
-          }
-        ]
-      };
-    } else {
-      // Text-only request
-      contents = {
-        parts: [
-          {
-            text: fullPrompt
-          }
-        ]
-      };
+      parts.push({
+        inlineData: {
+          mimeType: 'image/jpeg',
+          data: base64Data
+        }
+      });
     }
+
+    // Add optional reference images (logo and spätibild)
+    if (request.logoImageBase64) {
+      const logoData = request.logoImageBase64.replace(/^data:image\/\w+;base64,/, "");
+      parts[0].text += "\n\nREFERENCE - LOGO: The following image is the business logo. Incorporate it naturally into the ad design.";
+      parts.push({
+        inlineData: {
+          mimeType: 'image/jpeg',
+          data: logoData
+        }
+      });
+    }
+
+    if (request.spatiImageBase64) {
+      const spatiData = request.spatiImageBase64.replace(/^data:image\/\w+;base64,/, "");
+      parts[0].text += "\n\nREFERENCE - STORE PHOTO: The following image shows the actual store/location. Use it as visual reference for the style and atmosphere.";
+      parts.push({
+        inlineData: {
+          mimeType: 'image/jpeg',
+          data: spatiData
+        }
+      });
+    }
+
+    contents = { parts };
 
     const response = await ai.models.generateContent({
       model: MODEL_NAME,

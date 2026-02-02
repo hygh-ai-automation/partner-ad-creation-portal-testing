@@ -4,11 +4,26 @@ import { GenerationRequest } from "../types";
 // Define the model name as requested: nano banana pro -> gemini-3-pro-image-preview
 const MODEL_NAME = 'gemini-3-pro-image-preview';
 
+// Get API key from environment variable (Vite uses import.meta.env)
+const getApiKey = (): string => {
+  const key = (import.meta as any).env?.VITE_GEMINI_API_KEY || (window as any).__GEMINI_API_KEY__;
+  if (!key) {
+    throw new Error("API key not configured. Please set VITE_GEMINI_API_KEY in .env");
+  }
+  return key;
+};
+
+export const hasApiKey = (): boolean => {
+  try {
+    return !!getApiKey();
+  } catch {
+    return false;
+  }
+};
+
 export const generateAd = async (request: GenerationRequest): Promise<string> => {
   try {
-    // Note: We create the client inside the function to ensure we pick up the latest API key
-    // if the user has just selected one via window.aistudio.openSelectKey()
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    const ai = new GoogleGenAI({ apiKey: getApiKey() });
 
     let contents;
     

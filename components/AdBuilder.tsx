@@ -1,9 +1,31 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { GenerationMode, AdSettings, GeneratedAd } from '../types';
 import { generateAd } from '../services/gemini';
 import SettingsModal from './SettingsModal';
 
 const DEFAULT_BASE_PROMPT = "Create a high-quality, energetic social media advertisement for a local business partner. The image should be in a 9:16 vertical format suitable for stories. Make it look professional, appealing, and authentic to the business type.";
+
+const SETTINGS_STORAGE_KEY = 'partner-creator-settings';
+
+const getInitialSettings = (): AdSettings => {
+  if (typeof window === 'undefined') {
+    return { basePrompt: DEFAULT_BASE_PROMPT, savedPrompts: [], activePromptId: null };
+  }
+  try {
+    const stored = localStorage.getItem(SETTINGS_STORAGE_KEY);
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      return {
+        basePrompt: parsed.basePrompt || DEFAULT_BASE_PROMPT,
+        savedPrompts: parsed.savedPrompts || [],
+        activePromptId: parsed.activePromptId || null
+      };
+    }
+  } catch (e) {
+    console.error('Failed to load settings from localStorage:', e);
+  }
+  return { basePrompt: DEFAULT_BASE_PROMPT, savedPrompts: [], activePromptId: null };
+};
 
 const LOCATION_TYPES = [
   "Spätkauf / Kiosk",
@@ -29,9 +51,16 @@ const AdBuilder: React.FC = () => {
   
   // Admin Settings State
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [settings, setSettings] = useState<AdSettings>({
-    basePrompt: DEFAULT_BASE_PROMPT
-  });
+  const [settings, setSettings] = useState<AdSettings>(getInitialSettings);
+
+  // Persist settings to localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(settings));
+    } catch (e) {
+      console.error('Failed to save settings to localStorage:', e);
+    }
+  }, [settings]);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const logoInputRef = useRef<HTMLInputElement>(null);

@@ -1,7 +1,15 @@
 export type GenerationMode = 'text' | 'product';
 
+export interface SavedPrompt {
+  id: string;
+  name: string;
+  prompt: string;
+}
+
 export interface AdSettings {
   basePrompt: string;
+  savedPrompts: SavedPrompt[];
+  activePromptId: string | null;
 }
 
 export interface GeneratedAd {
